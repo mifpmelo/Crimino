@@ -4,7 +4,8 @@ function(input, output, session) {
   # ---- Data Explorer ----
   # -- Summary Statistics Tab
   output$tb.descriptives <- renderTable({
-    dt.descriptives <- data.frame(Category = c("Total nº of observations", "Unique crime types", "Unique crime groups - Primary.Type", "Total nº unique locations", "Arrests"), Statistics = c(nrow(dt.crimes), length(unique(dt.crimes$Description)), length(unique(dt.crimes$Primary.Type)), length(unique(dt.crimes$Location)), nrow(dt.crimes[Arrest == "Yes", ])))
+    dt.descriptives <- data.frame(Category = c("Total Crime Occurrences", "Total Crime Types (Primary Type)", "Total Crime Descriptions", "Total Arrests"), 
+                                  Statistics = c(nrow(dt.crimes), length(unique(dt.crimes$Primary.Type)), length(unique(dt.crimes$Description)), nrow(dt.crimes[Arrest == "Yes", ])))
   })
   
   output$hist.ward <- renderPlot({
@@ -15,13 +16,18 @@ function(input, output, session) {
     ggplot(dt.crimes, aes(x = Primary.Type)) + geom_bar() + ggtitle("Occurences per crime type - Primary.Type") + coord_flip()
   })
   
-  output$hist.Description <- renderPlot({
-    ggplot(dt.crimes, aes(x = Description)) + geom_bar() + ggtitle("Occurences per crime type - Description") + coord_flip()
+ output$df.top.10.crimes <- renderTable({
+    df.top.10.crimes <- data.frame(Crime = c((head(dt.freq.crimes$Primary.Type, 10))), Daily = c(trunc(head(dt.freq.crimes$N, 10)/360)), Hourly = c(trunc(head(dt.freq.crimes$N, 10)/(360*24))))
   })
   
-  output$tb.locations <- renderTable({
-    dt.locations <- data.frame(Location = c("Wards", "Districts", "Beats", "Community Areas"), Total = c(length(unique(dt.crimes$Ward)), length(unique(dt.crimes$District)), length(unique(dt.crimes$Beat)), length(unique(dt.crimes$Community.Area))))
-  })
+ output$tb.locations <- renderTable({
+    dt.location <- data.frame(Location = c("Districts", "Wards", "Community Areas", "Beats", "Blocks"), 
+                              Total = c(length(unique(dt.crimes$District)), length(unique(dt.crimes$Ward)), length(unique(dt.crimes$Community.Area)), length(unique(dt.crimes$Beat)), length(unique(dt.crimes$Block))), 
+                              Mean = c("11518.48", "5298.5", "3440.584", "966.8796", "966.8796"), 
+                              SD = c("4084.802", "3080.482", "2985.395", "391.9794", "216.28922"), 
+                              Min = c("3", "2224", "268", "61", "1"), 
+                              Max = c("17842", "17145", "15273", "3108", "946"))
+  }) 
   
   # -- Crime Tab
   tabledata.ward <- function(){
